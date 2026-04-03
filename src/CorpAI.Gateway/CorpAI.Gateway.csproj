@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.0" />
+    <PackageReference Include="Yarp.ReverseProxy" Version="2.2.0" />
+    <PackageReference Include="AngleSharp" Version="1.1.2" />
+  </ItemGroup>
+
+  <!-- Automatic Asset Download on Build -->
+  <Target Name="DownloadStaticAssets" BeforeTargets="Build">
+    <Message Text="Checking for local assets..." Importance="Normal" />
+    
+    <MakeDir Directories="$$(ProjectDir)wwwroot\lib\bootstrap\dist\css" Condition="!Exists('$$(ProjectDir)wwwroot\lib\bootstrap\dist\css')" />
+    <MakeDir Directories="$$(ProjectDir)wwwroot\lib\bootstrap\dist\js" Condition="!Exists('$$(ProjectDir)wwwroot\lib\bootstrap\dist\js')" />
+    <MakeDir Directories="$$(ProjectDir)wwwroot\lib\jquery\dist" Condition="!Exists('$$(ProjectDir)wwwroot\lib\jquery\dist')" />
+    <MakeDir Directories="$$(ProjectDir)wwwroot\fonts" Condition="!Exists('$$(ProjectDir)wwwroot\fonts')" />
+
+    <DownloadFile 
+        SourceUrl="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
+        DestinationFolder="$(ProjectDir)wwwroot\lib\bootstrap\dist\css" 
+        DestinationFileName="bootstrap.min.css" 
+        SkipUnchangedFiles="true" 
+        Retries="3" 
+        Condition="!Exists('$(ProjectDir)wwwroot\lib\bootstrap\dist\css\bootstrap.min.css')" />
+
+    <DownloadFile 
+        SourceUrl="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
+        DestinationFolder="$(ProjectDir)wwwroot\lib\bootstrap\dist\js" 
+        DestinationFileName="bootstrap.bundle.min.js" 
+        SkipUnchangedFiles="true" 
+        Retries="3" 
+        Condition="!Exists('$(ProjectDir)wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js')" />
+
+    <DownloadFile 
+        SourceUrl="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" 
+        DestinationFolder="$(ProjectDir)wwwroot\lib\jquery\dist" 
+        DestinationFileName="jquery.min.js" 
+        SkipUnchangedFiles="true" 
+        Retries="3" 
+        Condition="!Exists('$(ProjectDir)wwwroot\lib\jquery\dist\jquery.min.js')" />
+    
+    <Message Text="Static assets verified or downloaded." Importance="Normal" />
+  </Target>
+
+</Project>

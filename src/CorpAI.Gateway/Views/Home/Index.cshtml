@@ -1,0 +1,31 @@
+@{
+    ViewData["Title"] = "AI Gateway";
+}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header"><h4>AI Assistant</h4></div>
+                <div class="card-body">
+                    <div id="chat-container" class="border rounded p-3 mb-3" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;"></div>
+                    <div class="input-group">
+                        <textarea id="prompt-input" class="form-control" rows="2" placeholder="Ask anything..."></textarea>
+                        <button id="send-btn" class="btn btn-primary" type="button">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="alert alert-info"><strong>Note:</strong> All interactions are logged.</div>
+            <div class="card">
+                <div class="card-header">Quick Actions</div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary text-start quick-action" data-query="Summarize this">🔍 Summarize</button>
+                        <button class="btn btn-outline-primary text-start quick-action" data-query="Analyze trends">📊 Analyze</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

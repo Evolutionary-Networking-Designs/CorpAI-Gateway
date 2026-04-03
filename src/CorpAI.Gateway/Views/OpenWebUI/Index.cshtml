@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "AI Workspace";
+}
+<div class="d-flex flex-column vh-100 overflow-hidden">
+    <div class="bg-dark text-white p-2 d-flex justify-content-between align-items-center">
+        <span class="h5 mb-0">Open WebUI</span>
+        <a href="/" class="btn btn-sm btn-outline-light">Back to Dashboard</a>
+    </div>
+    <iframe id="webui-frame" src="/webui" class="flex-grow-1 w-100 border-0" sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups allow-top-navigation-by-user-activation" title="Open WebUI"></iframe>
+</div>
+<style>
+    #webui-frame { display: block; background-color: #fff; }
+    body, html { height: 100%; margin: 0; overflow: hidden; }
+</style>

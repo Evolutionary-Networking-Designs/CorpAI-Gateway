@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Corp AI Gateway</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    @{
+        var themeService = Context.RequestServices.GetRequiredService<CorpAI.Gateway.Services.IThemeGeneratorService>();
+        var themeFile = themeService.GetCssFileName();
+    }
+    <link href="/css/@themeFile" rel="stylesheet" />
+    <link href="~/css/site.css" rel="stylesheet" />
+</head>
+<body>
+    <nav class="navbar navbar-custom navbar-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Corp AI Gateway</span>
+            <div id="navbar-slot"></div>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        @RenderBody()
+    </div>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/auth-api.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
