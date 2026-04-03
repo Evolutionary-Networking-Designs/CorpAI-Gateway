@@ -1,0 +1,12 @@
+---
+- name: Deploy Corp AI Gateway
+  hosts: macmini
+  become: true
+  gather_facts: yes
+
+  tasks:
+    - name: Include Certificate Setup
+      import_tasks: tasks/certbot_setup.yml
+
+    - name: Include App Deployment
+      import_tasks: tasks/deploy_app.yml

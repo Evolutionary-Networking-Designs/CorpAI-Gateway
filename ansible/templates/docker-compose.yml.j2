@@ -1,0 +1,151 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # CERTIFICATE MANAGEMENT (Sidecar)
+  # ============================================
+  certbot:
+    image: certbot/dns-cloudflare:latest
+    container_name: certbot
+    volumes:
+      - certbot-data:/etc/letsencrypt
+      - certbot-logs:/var/log/letsencrypt
+    environment:
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - CF_API_KEY=${CF_API_KEY}
+    entrypoint: >
+      sh -c "
+        certbot certonly --dns-cloudflare 
+        --dns-cloudflare-propagation-seconds 60
+        --email ${ADMIN_EMAIL} 
+        --agree-tos --no-eff-email 
+        -d ${DOMAIN_NAME}
+        --keep-until-expiring &&
+        trap exit TERM; 
+        while :; do 
+          certbot renew --quiet --post-hook 'touch /etc/letsencrypt/renewed';
+          sleep 12h; 
+        done;
+      "
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # ============================================
+  # THE APPLICATION (.NET 10 + YARP)
+  # ============================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yarp-gateway
+    ports:
+      - "80:8080"
+      - "443:8443"
+    volumes:
+      - certbot-data:/certs:ro
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - Kestrel__Certificates__Default__Path=/certs/live/${DOMAIN_NAME}/fullchain.pem
+      - Kestrel__Certificates__Default__KeyPath=/certs/live/${DOMAIN_NAME}/privkey.pem
+      - Ollama__BaseUrl=http://ollama:11434
+      - Chroma__BaseUrl=http://chroma-db:8000
+      - Keycloak__Authority=http://keycloak:8080
+      - Keycloak__ClientId=dotnet-ai-client
+      - Keycloak__ClientSecret=${KEYCLOAK_CLIENT_SECRET}
+    depends_on:
+      certbot:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    networks:
+      - ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-kf", "https://localhost:8443/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # INTERNAL SERVICES (Not Exposed)
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: keycloak-postgres
+    environment:
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: keycloak_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ai-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: keycloak
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_USERNAME: keycloak_user
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ai-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - ai-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]  # If using GPU acceleration
+
+  chroma-db:
+    image: chromadb/chroma:latest
+    container_name: chroma-db
+    volumes:
+      - chroma-data:/chroma/chroma
+    networks:
+      - ai-network
+
+  webui:
+    image: ghcr.io/open-webui/open-webui:main
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    ports:
+      - "3000:8080"
+    # Ensure host.docker.internal is accessible
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  certbot-data:
+  certbot-logs:
+  postgres-data:
+  ollama-data:
+  chroma-data:
+
+networks:
+  ai-network:
+    driver: bridge

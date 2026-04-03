@@ -1,0 +1,8 @@
+---
+domain_name: "ai.yourcompany.com"
+admin_email: "admin@yourcompany.com"
+cf_api_email: "your-cloudflare-email@example.com"
+cf_api_key: "YOUR_CLOUDFLARE_API_KEY" # USE ANSIBLE VAULT!
+postgres_password: "STRONG_POSTGRES_PASS"
+keycloak_admin_password: "STRONG_KEYCLOAK_PASS"
+keycloak_client_secret: "STRONG_CLIENT_SECRET"
