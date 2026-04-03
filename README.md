@@ -1,5 +1,3 @@
-Thought about this
-
 Corp AI Gateway
 ===============
 
